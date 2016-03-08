@@ -1,23 +1,28 @@
 #!/bin/bash
 
-GUVNOR_URL=http://localhost:8080/jboss-brms/org.drools.guvnor.Guvnor/webdav/snapshots/mortgages/1/
+# Do not leave a trailling / here
+GUVNOR_URL=http://10.3.12.100:32770/jboss-brms/org.drools.guvnor.Guvnor/webdav/snapshots/mortgages/TEST
 
-IP=$(curl -u jboss:bpmsuite1! $GUVNOR_URL)
+# get file listing
+FILE_LIST=$(curl -u jboss:bpmsuite1! $GUVNOR_URL 2>>wget.output)
 
-COUNT=0
+echo -e "\nDownloading your sources from $GUVNOR_URL ..."
+echo -e "==========================================\n"
 
+# loop over the file list line by line
 # docs on looping on a variable by line http://mywiki.wooledge.org/BashFAQ/001
-printf %s "$IP" | while IFS= read -r line
+COUNT=0
+printf %s "$FILE_LIST" | while IFS= read -r line
 do
    # the first two lines are meta data and a binary, so the counter skips them
-   if (( "$COUNT" > 1 )) 
+   if (( "$COUNT" > 1 ))
    then
-     echo -e "Downloading $line ...\n"
-     echo -e "==========================================\n"
-     URL=$GUVNOR_URL$line
-     wget "$URL" --http-user=jboss --password=bpmsuite1!
-     echo -e "==========================================\n"	
-
+     echo -e "$line"
+     URL=$GUVNOR_URL/$line
+     wget "$URL" --http-user=jboss --password=bpmsuite1! 2>>wget.output
    fi
    COUNT=$((COUNT+1))
 done
+
+echo -e "\n==========================================\n"
+echo -e "Downloads complete. If you don't see your files, check wget.output for the results of each download.\n"
